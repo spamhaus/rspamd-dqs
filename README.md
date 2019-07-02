@@ -3,16 +3,20 @@
 This repository contains configuration files for Rspamd (https://rspamd.com/) that enables you to use Spamhaus Technology Data Query Service (DQS) product
 
 - What is DQS?
+
 DQS is a set of DNSBLs with real time updates.
 
 - How does DQS performs?
+
 You can [see it by yourself](https://www.virusbulletin.com/testing/results/latest/vbspam-email-security). We are independently tested by Virus Bulletin, that tests both DQS and public mirror performances. The difference is that DQS catches up to 42% more spam than our public mirrors.
 And please be aware that that results on VBSpam are achieved by using *only* the DQS dataset, meaning that if you just add an antivirus to your email filtering setup you can possibly reach the same performance as other commercial antispam products.
 
 - What is the licensing for DQS?
+
 The usage terms are [the same](https://www.spamhaus.org/organization/dnsblusage/) as the ones for our public mirrors, meaning that if you already use our public mirrors you are entitled for a free DQS key
 
 - How do I register a DQS key?
+
 It's very easy, just go [here](https://www.spamhaustech.com/dqs/) and complete the registration procedure. After you register an account, go to [this](https://portal.spamhaustech.com/src/manual/dqs/) page and note the DQS key
 
 #Installation
