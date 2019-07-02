@@ -20,7 +20,7 @@ The usage terms are [the same](https://www.spamhaus.org/organization/dnsblusage/
 It's very easy, just go [here](https://www.spamhaustech.com/dqs/) and complete the registration procedure. After you register an account, go to [this](https://portal.spamhaustech.com/src/manual/dqs/) page and note the DQS key
 
 
-#Installation
+##Installation instructions
 
 
 ## Prerequisites
