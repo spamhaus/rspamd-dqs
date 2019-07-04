@@ -75,6 +75,12 @@ Now it's time to configure your DQS key. Assuming your key is `aip7yig6sahg6ehso
 	$ sed -i -e 's/your_DQS_key/aip7yig6sahg6ehsohn5shco3z/g' *.conf
 ```
 
+If you are on FreeBSD then the command slightly changes:
+
+```
+	$ cd rspamd-dqs
+	$ sed -i "" -e 's/your_DQS_key/aip7yig6sahg6ehsohn5shco3z/g' *.conf
+```
 There will be no output, but your key will be placed in all the needed places. Now move the configuration files in your Rspamd *configuration directory*. Assuming it is `/etc/rspamd` , execute the following command:
 
 ```
