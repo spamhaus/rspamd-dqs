@@ -2,38 +2,80 @@
 
 This repository contains configuration files for Rspamd (https://rspamd.com/) that enables you to use Spamhaus Technology Data Query Service (DQS) product
 
-- What is DQS?
+***
 
-DQS is a set of DNSBLs with real time updates.
+### Table of contents
+- [What is DQS](#what-is-dqs)?
+- [What are the zones available with DQS](#what-are-the-zones-available-with-dqs)?
+- [What are the advantages of DQS](#what-are-the-advantages-of-dqs)?
+- [How does DQS Performs](#how-does-dqs-performs)?
+- [What is the licensing for DQS](#what-is-the-licensing-for-dqs)?
+- [How do I register a DQS key](#how-do-i-register-a-dqs-key)?
+- [Prerequisites](#prerequisites)
+- [Conventions](#conventions)
+- [Installation instructions](#installation-instructions)
+- [Final recommendations](#final-recommendations)
+- [Support and feedback](#support-and-feedback)
 
-- How does DQS performs?
+***
+
+#### What is DQS
+
+DQS (acronym for Data Query Service) is a set of DNSBLs with real time updates operated by Spamhaus Technology ([https://www.spamhaustech.com](https://www.spamhaustech.com))
+
+***
+
+#### What are the zones available with DQS
+
+All zones and their meaning with all possible return codes are documented [here](https://docs.spamhaustech.com/10-data-type-documentation/datasets/030-datasets.html)
+
+***
+
+#### What are the advantages of DQS
+
+There are some. First of all you will get real time updates instead of one minute delayed updates that you get querying the public mirrors or getting an RSYNC feed.
+Sixty seconds doesn't seem too much but when dealing with hailstormers they are *crucial*. The increase in catch rate between public mirrors and DQS is mostly thanks to the real time updates.
+
+Along with the above advantage you will also get two new zones to query, ZRD (Zero Reputation Domains) and AuthBL.
+
+ZRD automatically adds newly-registered and previously dormant domains to a block list for 24 hours. It also gives you return codes that indicate the age of the domain in hours since first observation.
+
+AuthBL is mostly dedicated to anyone that operates a submission smtp server. It's a list of IPs that are known to host bots that use stolen credentials to spam. If one of your customer gets his credentials stolen, AuthBL greatly mitigates the problem of botnets to abuse the account, and keeps your MTAs safe from being blacklisted.
+
+***
+
+#### How does DQS performs
 
 You can [see it by yourself](https://www.virusbulletin.com/testing/results/latest/vbspam-email-security). We are independently tested by Virus Bulletin, that tests both DQS and public mirror performances. The difference is that DQS catches up to 42% more spam than our public mirrors.
 And please be aware that that results on VBSpam are achieved by using *only* the DQS dataset, meaning that if you just add an antivirus to your email filtering setup you can possibly reach the same performance as other commercial antispam products.
 
-- What is the licensing for DQS?
+***
+
+#### What is the licensing for DQS?
 
 The usage terms are [the same](https://www.spamhaus.org/organization/dnsblusage/) as the ones for our public mirrors, meaning that if you already use our public mirrors you are entitled for a free DQS key.
 
-- How do I register a DQS key?
+***
+
+#### How do I register a DQS key?
 
 It's very easy, just go [here](https://www.spamhaustech.com/dqs/) and complete the registration procedure. After you register an account, go to [this](https://portal.spamhaustech.com/src/manual/dqs/) page and note the DQS key.
 
+***
 
-# Installation instructions
+#### Prerequisites
 
-
-## Prerequisites
-
-You naturally need a DQS key along with Rspamd 1.9+ already installed on your system. These instructions do not cover the initial Rspamd installation. 
+You naturally need a DQS key along with Rspamd 1.9.1+ already installed on your system. These instructions do not cover the initial Rspamd installation. 
 To correctly install Rspamd please refer to instructions applicable to your distribution or see the documentation on the [Rspamd site](https://rspamd.com/).
 
-## Conventions
+***
+
+#### Conventions
 
 We are going to use some abbreviations and placeholders:
 
  * SH: Spamhaus
- * *configuration directory*: whenever you'll find these italic words, we will refer to the Rspamd configuration directory. It usually is `/etc/rspamd`, unless you installed it by using sources rather than a package.
+ * *configuration directory*: whenever you'll find these italic words, we will refer to SA's configuration directory. Depending on your distribution it may be `/etc/rspamd` or other
  * whenever you find the box below, it means that you need to enter the command on your shell:
 ```
 	$ command
@@ -87,10 +129,10 @@ There will be no output, but your key will be placed in all the needed places. N
 	# cp *.conf /etc/rspamd/local.d
 ```
 
-You are done! Just restart rspamd and you'll have the updated configuration up and running
+You are done! Just restart Rspamd and you'll have the updated configuration up and running
 
 ## Final recommendations
-
+ 
 We already said that the configuration in the VBSpam survey make use exclusively of our data, as our goal was certifying their quality and keep an eye on how we perform in the field.
 
 While the results are reasonably good, the malware/phishing scoring can certainly be improved through some additional actions that we recommend.
@@ -106,4 +148,6 @@ While the results are reasonably good, the malware/phishing scoring can certainl
 
 ## Support and feedback
 
-We would be happy to receive some feedback from you. If you notice any problem with this installation, please drop us a note at datafeed-support@spamteq.com and we'll try to do our best to help you.
+We would be happy to receive some feedback from you. If you notice any problem with this installation, please drop us a note at datafeed-support@spamteq.com or open an issue in this project and we'll try to do our best to help you.
+
+Remember that we are going to support only the latest version, so please before opening a support request be sure to be running the up to date rules from this github repository.
