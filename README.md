@@ -87,7 +87,7 @@ We are going to use some abbreviations and placeholders:
 
 ## Installation instructions
 
-First of all, please note that we consider these configuration files as *beta*. We did some limited field tests but you are encouraged to keep an eye on the logfiles to spot any possible problem we missed. See the **Support** section below to know how to reach us.
+First of all, please note that we consider these configuration files as *beta*. We did some limited field tests but you are encouraged to keep an eye on the logfiles to spot any possible problem we missed. See the [support and feedback](#support-and-feedback) section below to know how to reach us.
 
 Start with downloading all the needed files:
 
