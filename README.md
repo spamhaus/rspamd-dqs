@@ -130,7 +130,19 @@ There will be no output, but your key will be placed in all the needed places. N
 	# cp *.conf /etc/rspamd/local.d
 ```
 
-You are done! Just restart Rspamd and you'll have the updated configuration up and running
+Now run:
+
+```
+	# rspamadm configtest
+```
+
+If the output is:
+
+```
+	syntax OK
+```
+
+then you are done! Just restart Rspamd and you'll have the updated configuration up and running
 
 ## Final recommendations
  
