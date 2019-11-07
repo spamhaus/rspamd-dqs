@@ -141,7 +141,6 @@ Or, if you have Rspamd 2.x:
 Now it's time to configure your DQS key. Assuming your key is `aip7yig6sahg6ehsohn5shco3z`, execute the following command:
 
 ```
-	$ cd rspamd-dqs
 	$ sed -i -e 's/your_DQS_key/aip7yig6sahg6ehsohn5shco3z/g' *.conf
 ```
 
