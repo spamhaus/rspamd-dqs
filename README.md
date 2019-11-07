@@ -147,7 +147,6 @@ Now it's time to configure your DQS key. Assuming your key is `aip7yig6sahg6ehso
 If you are on FreeBSD then the command slightly changes:
 
 ```
-	$ cd rspamd-dqs
 	$ sed -i "" -e 's/your_DQS_key/aip7yig6sahg6ehsohn5shco3z/g' *.conf
 ```
 
