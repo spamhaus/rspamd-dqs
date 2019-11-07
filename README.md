@@ -75,7 +75,7 @@ To correctly install Rspamd please refer to instructions applicable to your dist
 We are going to use some abbreviations and placeholders:
 
  * SH: Spamhaus
- * *configuration directory*: whenever you'll find these italic words, we will refer to SA's configuration directory. Depending on your distribution it may be `/etc/rspamd` or other
+ * *configuration directory*: whenever you'll find these italic words, we will refer to Rspamd's configuration directory. Depending on your distribution it may be `/etc/rspamd` or other
  * whenever you find the box below, it means that you need to enter the command on your shell:
 ```
 	$ command
@@ -86,6 +86,17 @@ We are going to use some abbreviations and placeholders:
 ```
 
 ## Installation instructions
+
+== Warning! Warning! Understand what follows!==
+
+The release of Rspamd 2.x introduced changes in the syntax and obsoleted some old configuration files. We have decided then to create a dedicated directory for each major release.
+
+You will find a directory called 1.9 that contains the old rules for Rspamd 1.9.1+ and another, 2.x, that contains rules for the newest release. 
+
+However, we are only going to give support for the 2.x ruleset
+
+== End of Warning! Warning!==
+
 
 First of all, please note that we consider these configuration files as *beta*. We did some limited field tests but you are encouraged to keep an eye on the logfiles to spot any possible problem we missed. See the [support and feedback](#support-and-feedback) section below to know how to reach us.
 
@@ -103,12 +114,28 @@ Start with downloading all the needed files:
 
 A subdirectory called `rspamd-dqs` will be created. Within it you will find the following files:
 
- - `README.md`. This is just a pointer to this document.
- - `rbl.conf`. This file contains lookup redefinitions for the IP-based lists.
- - `surbl.conf`. This file contains lookup redefinitions for the domain-based lists.
-- `emails.conf`. This file contains lookup redefinitions for email addresses.
-- `rbl_group.conf`. This file contains scores redefinitions.
+- `README.md`. This is just a pointer to this document.
+- `1.9`. Directory that contains config files for Rspamd 1.9.1+
+- `1.9\rbl.conf`. This file contains lookup redefinitions for the IP-based lists.
+- `1.9\surbl.conf`. This file contains lookup redefinitions for the domain-based lists.
+- `1.9\emails.conf`. This file contains lookup redefinitions for email addresses.
+- `1.9\rbl_group.conf`. This file contains scores redefinitions.
+- `2.x`. Directory that contains config files for Rspamd 2.x
+- `2.x\rbl.conf`. This file contains lookup redefinitions and more for all SH lists
+- `2.x\rbl_group.conf`. This file contains scores redefinitions.
 
+Depending on the version of Rspamd you are using, enter the appropriate directory. If you have 1.9.1+:
+
+```
+	$ cd rspamd-dqs\1.9
+```
+
+Or, if you have Rspamd 2.x:
+
+
+```
+	$ cd rspamd-dqs\2.x
+```
 
 Now it's time to configure your DQS key. Assuming your key is `aip7yig6sahg6ehsohn5shco3z`, execute the following command:
 
@@ -161,6 +188,6 @@ While the results are reasonably good, the malware/phishing scoring can certainl
 
 ## Support and feedback
 
-We would be happy to receive some feedback from you. If you notice any problem with this installation, please drop us a note at datafeed-support@spamteq.com or open an issue in this project and we'll try to do our best to help you.
+We would be happy to receive some feedback from you. If you notice any problem with this installation, please open an issue in this project and we'll try to do our best to help you.
 
 Remember that we are going to support only the latest version, so please before opening a support request be sure to be running the up to date rules from this github repository.
