@@ -85,9 +85,9 @@ We are going to use some abbreviations and placeholders:
 	# command
 ```
 
-## Installation instructions
+***
 
-== Warning! Warning! Understand what follows!==
+#### Warning! Warning! Understand what follows!
 
 The release of Rspamd 2.x introduced changes in the syntax and obsoleted some old configuration files. We have decided then to create a dedicated directory for each major release.
 
@@ -95,8 +95,9 @@ You will find a directory called 1.9 that contains the old rules for Rspamd 1.9.
 
 However, we are only going to give support for the 2.x ruleset
 
-== End of Warning! Warning!==
+***
 
+## Installation instructions
 
 First of all, please note that we consider these configuration files as *beta*. We did some limited field tests but you are encouraged to keep an eye on the logfiles to spot any possible problem we missed. See the [support and feedback](#support-and-feedback) section below to know how to reach us.
 
@@ -127,14 +128,14 @@ A subdirectory called `rspamd-dqs` will be created. Within it you will find the 
 Depending on the version of Rspamd you are using, enter the appropriate directory. If you have 1.9.1+:
 
 ```
-	$ cd rspamd-dqs\1.9
+	$ cd rspamd-dqs/1.9
 ```
 
 Or, if you have Rspamd 2.x:
 
 
 ```
-	$ cd rspamd-dqs\2.x
+	$ cd rspamd-dqs/2.x
 ```
 
 Now it's time to configure your DQS key. Assuming your key is `aip7yig6sahg6ehsohn5shco3z`, execute the following command:
