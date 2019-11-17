@@ -65,7 +65,7 @@ It's very easy, just go [here](https://www.spamhaustech.com/dqs/) and complete t
 
 #### Prerequisites
 
-You naturally need a DQS key along with Rspamd 1.9.1+ already installed on your system. These instructions do not cover the initial Rspamd installation. 
+You naturally need a DQS key along with Rspamd 1.9.1+ (old rules, unsupported) or Rspamd 2.x (currently supported) already installed on your system. These instructions do not cover the initial Rspamd installation. 
 To correctly install Rspamd please refer to instructions applicable to your distribution or see the documentation on the [Rspamd site](https://rspamd.com/).
 
 ***
