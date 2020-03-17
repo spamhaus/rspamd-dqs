@@ -59,7 +59,7 @@ The usage terms are [the same](https://www.spamhaus.org/organization/dnsblusage/
 
 #### How do I register a DQS key?
 
-It's very easy, just go [here](https://www.spamhaustech.com/dqs/) and complete the registration procedure. After you register an account, go to [this](https://portal.spamhaustech.com/src/manual/dqs/) page and note the DQS key.
+It's very easy, just go [here](https://www.spamhaustech.com/dqs/) and complete the registration procedure. After you register an account, go to [this](https://portal.spamhaustech.com/manuals/dqs/) page and note the DQS key. When you complete the registration and logging to the portal, the DQS key will be found in section "1.0 Datafeed Query Service" after "Your Datafeed Query Account Key is:"
 
 ***
 
