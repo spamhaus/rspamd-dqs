@@ -56,7 +56,7 @@ NOTE: Results on VBSpam are achieved by using *only* the DQS dataset, meaning th
 #### HBL performance boost
 
 While we know that every scenario is different, our in the field observations made using the Virus Bulletin spam feed shows that including HBL in your antispam setup could roughly boost spam detection from 0,3% up to slightly more than 1%
-~~~~
+
 ***
 
 #### What is the licensing for DQS?
