@@ -84,7 +84,7 @@ local function check_cw_callback ( task, re, lowercase, cryptovalue )
         local function dns_cb(_,_,results,err)
             if (not results) then return false end
             if (string.find(tostring(results[1]), '127.0.')) then
-                        rspamd_logger.infox('found ' .. cryptovalue .. ' wallet %s (hashed: %s) in Cryptowallet blacklist', word, hash)
+                        rspamd_logger.infox('found ' .. cryptovalue .. ' wallet %s (hashed: %s) in Cryptowallet blocklist', word, hash)
                         return task:insert_result('RBL_SPAMHAUS_CW_' .. cryptovalue, 1.0, word);
                     end
                 end
