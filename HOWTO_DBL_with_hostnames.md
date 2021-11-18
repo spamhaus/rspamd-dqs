@@ -1,7 +1,8 @@
 **Instructions for Rspamd users**
 
-These instructions will help you participate in the beta testing of the new Spamhaus DBL with hostnames. More informations about the changes that are being introduced can be found here: https://www.spamhaus.com/resource-center/hostnames-for-spamhaus-domain-blocklist/
+The following config changes will enable you to use the new beta version of the Spamhaus Domain Blocklist (DBL). This beta blocklist now utilizes hostnames for compromised websites. For further information regarding the changes to the DBL, please read https://www.spamhaus.com/resource-center/hostnames-for-spamhaus-domain-blocklist/.
 
+**IMPORTANT:** Access to the beta version of the DBL with hostnames is through the free Public Mirrors until January 31st, 2022. **However**, when it moves to production on February 1st, 2022, **it will only be available via the Data Query Service (DQS) or rsync**, i.e., not the Public Mirrors. The DQS is available for free to non-commercial users; https://www.spamhaus.com/free-trial/sign-up-for-a-free-data-query-service-account/.
 To use the beta version of the Spamhaus Domain Blockilst (DBL) with hostnames, all you need to do is install the DQS plugin, following the instructions found here: https://github.com/spamhaus/rspamd-dqs, and make a few simple changes to the code, as detailed below:
 
 Edit the `rbl.conf` file. It's usually located in `/etc/rspamd/local.d/rbl.conf`. 
