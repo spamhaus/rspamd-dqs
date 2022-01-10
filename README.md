@@ -1,3 +1,8 @@
+
+# THIS IS A BETA BRANCH! 
+
+You can use for testing the final code that will be published at the end of January but you WILL NEED to change the zone for the abused-legit zone before mid February or your detection rate will fall considerably!
+
 # Using DQS with Rspamd
 
 This repository contains configuration files for Rspamd, (https://rspamd.com/) for use with the Spamhaus Technology Data Query Service (DQS) product.
@@ -126,7 +131,7 @@ First of all, please note that we consider these configuration files to be *beta
 Start with downloading all the needed files:
 
 ```
-	$ git clone https://github.com/spamhaus/rspamd-dqs
+	$ git clone -b dbl-beta https://github.com/spamhaus/rspamd-dqs
 	Cloning into 'rspamd-dqs'...
 	remote: Enumerating objects: 10, done.
 	remote: Counting objects: 100% (10/10), done.
