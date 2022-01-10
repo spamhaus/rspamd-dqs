@@ -1,8 +1,3 @@
-
-# THIS IS A BETA BRANCH! 
-
-You can use for testing the final code that will be published at the end of January but you WILL NEED to change the zone for the abused-legit zone before mid February or your detection rate will fall considerably!
-
 # Using DQS with Rspamd
 
 This repository contains configuration files for Rspamd, (https://rspamd.com/) for use with the Spamhaus Technology Data Query Service (DQS) product.
