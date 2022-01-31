@@ -126,7 +126,7 @@ First of all, please note that we consider these configuration files to be *beta
 Start with downloading all the needed files:
 
 ```
-	$ git clone -b dbl-beta https://github.com/spamhaus/rspamd-dqs
+	$ git clone https://github.com/spamhaus/rspamd-dqs
 	Cloning into 'rspamd-dqs'...
 	remote: Enumerating objects: 10, done.
 	remote: Counting objects: 100% (10/10), done.
