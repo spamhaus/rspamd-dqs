@@ -207,7 +207,8 @@ Next, move the configuration files in your Rspamd *configuration directory*.
 If your DQS key is HBL enabled and, assuming your configuration directory is `/etc/rspamd` , execute the following command:
 
 ```
-	# cp *.conf rspamd.local.lua /etc/rspamd/local.d
+	# cp *.conf /etc/rspamd/local.d
+	# cp rspamd.local.lua /etc/rspamd
 ```
 
 Or, if your DQS key is not HBL enabled, use this:
