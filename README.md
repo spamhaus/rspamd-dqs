@@ -86,7 +86,7 @@ Just go [here](https://www.spamhaustech.com/dqs/) and complete the registration 
 
 #### Prerequisites
 
-You need a DQS key along with an existing Rspamd 1.9.1+ (old rules, unsupported) or Rspamd 2.x (currently supported) installation on your system. These instructions do not cover the initial Rspamd installation. To correctly install Rspamd, please refer to instructions applicable to your distribution or see the documentation on the [Rspamd site](https://rspamd.com/).
+You need a DQS key along with an existing Rspamd 1.9.1+ (old rules, unsupported), Rspamd 2.x (old rules, unspoorted) or Rspamd 3.x  (currently supported) installation on your system. These instructions do not cover the initial Rspamd installation. To correctly install Rspamd, please refer to instructions applicable to your distribution or see the documentation on the [Rspamd site](https://rspamd.com/).
 
 ***
 
@@ -109,11 +109,9 @@ We are going to use some abbreviations and placeholders:
 
 #### Warning! Warning! Understand what follows!
 
-The release of Rspamd 2.x introduced changes in the syntax and made obsolete some of the old configuration files. We have therefore decided to create a dedicated directory for each major release.
+Since Rspamd is a fast changing and evolving project, we are going to support *only* the latest version, that is 3.x at the time of writing.
 
-You will find a directory called 1.9 that contains the old rules for Rspamd 1.9.1+, and another, 2.x, that contains rules for the newest release. 
-
-However, we are *only* going to support the 2.x ruleset.
+However you'll also find two directories, 1.9 and 2.x that contain the rules for those respective Rspamd versions. Those rules are there only for historic purposes and will not be supported.
 
 The HBL subset has only been tested on versions 2.4 and higher, so you are strongly encouraged to run the latest Rspamd version before using these rules.
 
@@ -140,17 +138,23 @@ A subdirectory called `rspamd-dqs` will be created. Within it you will find the 
 - `README.md`. This is just a pointer to this document.
 - `Changelog.md`. The changes log file.
 - `hbltest.sh`. A script that helps you know if your DQS key is HBL enabled.
-- `1.9`. Directory that contains config files for Rspamd 1.9.1+
+- `1.9`. Directory that contains config files for Rspamd 1.9.1+ (unsupported)
 - `1.9\rbl.conf`. This file contains lookup redefinitions for the IP-based lists.
 - `1.9\surbl.conf`. This file contains lookup redefinitions for the domain-based lists.
 - `1.9\emails.conf`. This file contains lookup redefinitions for email addresses.
 - `1.9\rbl_group.conf`. This file contains scores redefinitions.
-- `2.x`. Directory that contains config files for Rspamd 2.x
+- `2.x`. Directory that contains config files for Rspamd 2.x (unsupported)
 - `2.x\rbl.conf`. This file contains lookup redefinitions and more for all SH lists.
 - `2.x\rbl_group.conf`. This file contains scores redefinitions.
 - `2.x\rspamd.local.lua`. This file contains functions used only with HBL.
 - `2.x\sh_rbl_group_hbl.conf`. This file contains scores for HBL.
 - `2.x\sh_rbl_hbl.conf`. This file contains definitions for HBL.
+- `3.x`. Directory that contains config files for Rspamd 3.x
+- `3.x\rbl.conf`. This file contains lookup redefinitions and more for all SH lists.
+- `3.x\rbl_group.conf`. This file contains scores redefinitions.
+- `3.x\rspamd.local.lua`. This file contains functions used only with HBL.
+- `3.x\sh_rbl_group_hbl.conf`. This file contains scores for HBL.
+- `3.x\sh_rbl_hbl.conf`. This file contains definitions for HBL.
 
 Depending on the version of Rspamd you are using, enter the appropriate directory. If you have 1.9.1+:
 
@@ -165,6 +169,12 @@ If you have Rspamd 2.x:
 	$ cd rspamd-dqs/2.x
 ```
 
+If you have Rspamd 3.x:
+
+
+```
+	$ cd rspamd-dqs/3.x
+```
 Next, configure your DQS key. Assuming your key is `aip7yig6sahg6ehsohn5shco3z`, execute the following command:
 
 ```
@@ -207,7 +217,8 @@ Next, move the configuration files in your Rspamd *configuration directory*.
 If your DQS key is HBL enabled and, assuming your configuration directory is `/etc/rspamd` , execute the following command:
 
 ```
-	# cp *.conf rspamd.local.lua /etc/rspamd/local.d
+	# cp *.conf /etc/rspamd/local.d
+	# cp rspamd.local.lua /etc/rspamd
 ```
 
 Or, if your DQS key is not HBL enabled, use this:
@@ -224,7 +235,7 @@ Next, run:
 	# rspamadm configtest
 ```
 
-If the output is:
+If the output ends with the line:
 
 ```
 	syntax OK
