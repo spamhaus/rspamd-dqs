@@ -1,5 +1,9 @@
 Changelog for Rspamd DQS set of rules and code
 
+- 070222
+	- Added rules for version 3.x
+	- Tagged version 1.2.1
+
 - 310122
 	- Added rules to check whole hostnames in DBL
 	- Tagged version 1.2.0
