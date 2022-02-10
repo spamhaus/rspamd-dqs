@@ -87,7 +87,7 @@ Just go [here](https://www.spamhaustech.com/dqs/) and complete the registration 
 
 #### Prerequisites
 
-You need a DQS key along with an existing Rspamd 1.9.1+ (old rules, unsupported), Rspamd 2.x (old rules, unspoorted) or Rspamd 3.x  (currently supported) installation on your system. These instructions do not cover the initial Rspamd installation. To correctly install Rspamd, please refer to instructions applicable to your distribution or see the documentation on the [Rspamd site](https://rspamd.com/).
+You need a DQS key along with an existing Rspamd 1.9.1+ (old rules, unsupported), Rspamd 2.x (old rules, unsupported) or Rspamd 3.x  (currently supported) installation on your system. These instructions do not cover the initial Rspamd installation. To correctly install Rspamd, please refer to instructions applicable to your distribution or see the documentation on the [Rspamd site](https://rspamd.com/).
 
 ***
 
