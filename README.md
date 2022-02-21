@@ -198,7 +198,7 @@ Assuming the example key ```aip7yig6sahg6ehsohn5shco3z``` *is* HBL enabled, run 
 	$ sh ../hbltest.sh 
 	Please input your DQS key: aip7yig6sahg6ehsohn5shco3z
 	Looking up test record for HBL... done
-	Your DQS key xh5dgg6euauofymh5cgfxu3xwi is enabled for HBL
+	Your DQS key aip7yig6sahg6ehsohn5shco3z is enabled for HBL
 	You can copy sh_rbl_hbl.cf, sh_rbl_group_hbl.cf and rspamd.local.lua if you want HBL enabled
 
 ```
