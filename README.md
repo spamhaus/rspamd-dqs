@@ -24,13 +24,13 @@ This repository contains configuration files for Rspamd, (https://rspamd.com/) f
 
 #### What is DQS?
 
-Data Query Service (DQS) is a set of DNSBLs with real-time updates operated by Spamhaus Technology ([https://www.spamhaustech.com](https://www.spamhaustech.com)).
+Data Query Service (DQS) is a set of DNSBLs with real-time updates operated by Spamhaus Technology ([https://www.spamhaus.com](https://www.spamhaus.com)).
 
 ***
 
 #### What zones are available with DQS?
 
-All zones, their definitions, and all possible return codes are documented [here](https://docs.spamhaustech.com/10-data-type-documentation/datasets/030-datasets.html)
+All zones, their definitions, and all possible return codes are documented [here](https://docs.spamhaus.com/10-data-type-documentation/datasets/030-datasets.html)
 
 ***
 
@@ -74,14 +74,13 @@ With a paid subscription there is no query limit, and access to HBL (the new zon
 
 All the technical information about HBL is available [here](https://docs.spamhaustech.com/10-data-type-documentation/datasets/030-datasets.html#hbl)
 
-If you have a free DQS subscription and would like to trial HBL, please send an email to [sales@spamteq.com](mailto:sales@spamteq.com) including your customer ID, and you will be contacted by one of our representative to activate a 30 day trial.
-
+If you have a free DQS subscription and would like to trial HBL, please send an email to [sales@spamhaus.com](mailto:sales@spamhaus.com) including your customer ID, and you will be contacted by one of our representative to activate a 30 day trial.
 
 ***
 
 #### How do I register a DQS key?
 
-Just go [here](https://www.spamhaustech.com/dqs/) and complete the registration procedure. After you register an account, go to [this](https://portal.spamhaustech.com/manuals/dqs/) page and you'll find the DQS key under section "1.0 Datafeed Query Service".
+Just go [here](https://www.spamhaus.com/dqs/) and complete the registration procedure. After you register an account, go to [this](https://portal.spamhaus.com/manuals/dqs/) page and you'll find the DQS key under section "1.0 Datafeed Query Service".
 
 ***
 
@@ -112,7 +111,7 @@ We are going to use some abbreviations and placeholders:
 
 Since Rspamd is a fast changing and evolving project, we are going to support *only* the latest version, that is 3.x at the time of writing.
 
-However you'll also find two directories, 1.9 and 2.x that contain the rules for those respective Rspamd versions. Those rules are there only for historic purposes and will not be supported.
+However you'll also find two directories, 1.9 and 2.x that contain the rules for those respective Rspamd versions. Those rules are there only for historic purposes and will not be supported. The installation instructions below may not work for older versions. Specifically - you need to put your DQS key in the `rspamd.local.lua` file for version `2.x`, not just in `*.conf` files.
 
 The HBL subset has only been tested on versions 2.4 and higher, so you are strongly encouraged to run the latest Rspamd version before using these rules.
 
@@ -140,52 +139,40 @@ A subdirectory called `rspamd-dqs` will be created. Within it you will find the 
 - `Changelog.md`. The changes log file.
 - `hbltest.sh`. A script that helps you know if your DQS key is HBL enabled.
 - `1.9`. Directory that contains config files for Rspamd 1.9.1+ (unsupported)
-- `1.9\rbl.conf`. This file contains lookup redefinitions for the IP-based lists.
-- `1.9\surbl.conf`. This file contains lookup redefinitions for the domain-based lists.
-- `1.9\emails.conf`. This file contains lookup redefinitions for email addresses.
-- `1.9\rbl_group.conf`. This file contains scores redefinitions.
+- `1.9/rbl.conf`. This file contains lookup redefinitions for the IP-based lists.
+- `1.9/surbl.conf`. This file contains lookup redefinitions for the domain-based lists.
+- `1.9/emails.conf`. This file contains lookup redefinitions for email addresses.
+- `1.9/rbl_group.conf`. This file contains scores redefinitions.
 - `2.x`. Directory that contains config files for Rspamd 2.x (unsupported)
-- `2.x\rbl.conf`. This file contains lookup redefinitions and more for all SH lists.
-- `2.x\rbl_group.conf`. This file contains scores redefinitions.
-- `2.x\rspamd.local.lua`. This file contains functions used only with HBL.
-- `2.x\sh_rbl_group_hbl.conf`. This file contains scores for HBL.
-- `2.x\sh_rbl_hbl.conf`. This file contains definitions for HBL.
+- `2.x/rbl.conf`. This file contains lookup redefinitions and more for all SH lists.
+- `2.x/rbl_group.conf`. This file contains scores redefinitions.
+- `2.x/rspamd.local.lua`. This file contains functions used only with HBL.
+- `2.x/sh_rbl_group_hbl.conf`. This file contains scores for HBL.
+- `2.x/sh_rbl_hbl.conf`. This file contains definitions for HBL.
 - `3.x`. Directory that contains config files for Rspamd 3.x
-- `3.x\rbl.conf`. This file contains lookup redefinitions and more for all SH lists.
-- `3.x\rbl_group.conf`. This file contains scores redefinitions.
-- `3.x\rspamd.local.lua`. This file contains functions used only with HBL.
-- `3.x\sh_rbl_group_hbl.conf`. This file contains scores for HBL.
-- `3.x\sh_rbl_hbl.conf`. This file contains definitions for HBL.
+- `3.x/rbl.conf`. This file contains lookup redefinitions and more for all SH lists.
+- `3.x/rbl_group.conf`. This file contains scores redefinitions.
+- `3.x/rspamd.local.lua`. This file contains functions used only with HBL.
+- `3.x/sh_rbl_group_hbl.conf`. This file contains scores for HBL.
+- `3.x/sh_rbl_hbl.conf`. This file contains definitions for HBL.
+- `3.x/settings.conf`. This file contains settings for the HBL URL and CW matches.
 
-Depending on the version of Rspamd you are using, enter the appropriate directory. If you have 1.9.1+:
-
-```
-	$ cd rspamd-dqs/1.9
-```
-
-If you have Rspamd 2.x:
-
-
-```
-	$ cd rspamd-dqs/2.x
-```
-
-If you have Rspamd 3.x:
-
+In these installation instructions, we are assuming you are running Rspamd version 3.x. You install this module by using these commands:
 
 ```
 	$ cd rspamd-dqs/3.x
 ```
+
 Next, configure your DQS key. Assuming your key is `aip7yig6sahg6ehsohn5shco3z`, execute the following command:
 
 ```
-	$ sed -i -e 's/your_DQS_key/aip7yig6sahg6ehsohn5shco3z/g' *.conf rspamd.local.lua
+	$ sed -i -e 's/your_DQS_key/aip7yig6sahg6ehsohn5shco3z/g' *.conf
 ```
 
 If you are on FreeBSD then the command slightly changes:
 
 ```
-	$ sed -i "" -e 's/your_DQS_key/aip7yig6sahg6ehsohn5shco3z/g' *.conf rspamd.local.lua
+	$ sed -i "" -e 's/your_DQS_key/aip7yig6sahg6ehsohn5shco3z/g' *.conf
 ```
 
 There will be no output, but the key will be inserted in all the needed places. 
@@ -199,7 +186,8 @@ Assuming the example key ```aip7yig6sahg6ehsohn5shco3z``` *is* HBL enabled, run 
 	Please input your DQS key: aip7yig6sahg6ehsohn5shco3z
 	Looking up test record for HBL... done
 	Your DQS key aip7yig6sahg6ehsohn5shco3z is enabled for HBL
-	You can copy sh_rbl_hbl.cf, sh_rbl_group_hbl.cf and rspamd.local.lua if you want HBL enabled
+	You can copy sh_rbl_hbl.conf, sh_rbl_group_hbl.conf, settings.conf and rspamd.local.lua if you
+	want HBL enabled detection.
 
 ```
 
@@ -218,13 +206,17 @@ Next, move the configuration files in your Rspamd *configuration directory*.
 If your DQS key is HBL enabled and, assuming your configuration directory is `/etc/rspamd` , execute the following command:
 
 ```
-	# cp *.conf /etc/rspamd/local.d
+	# umask 022
+	# cp -i *.conf /etc/rspamd/local.d
 	# cp rspamd.local.lua /etc/rspamd
 ```
+
+If the `cp` command tells you that you are overwriting files, you might have an older installation of this module. You can overwrite the `sh_rbl*` and `rbl*` files. However, if you already have a `settings.conf`, make sure to merge the spamhaus settings with any existing settings you may have in that file. Simply appending the spamhaus `settings.conf` to the existing one will usually do just fine.
 
 Or, if your DQS key is not HBL enabled, use this:
 
 ```
+	# umask 022
 	# cp rbl.conf rbl_group.conf /etc/rspamd/local.d
 ```
 
@@ -242,11 +234,14 @@ If the output ends with the line:
 	syntax OK
 ```
 
-then you are done! Just restart Rspamd and you'll have the updated configuration up and running.
+then you are done! Just restart Rspamd and you'll have the updated configuration up and running. The HBL `_url` component needs the `URL_normalization.yaml` file to properly operate. That file is automatically downloaded and kept up to date in your `$DBDIR` (usually `/var/lib/rspamd`). The file is checked periodically by the plugin itself, but you can turn this off by setting `download_check` to `0` in `settings.conf`.
+By default the file is downloaded from spamhaus itself, from https://docs.spamhaus.com/download/URL_normalization.yaml. If you have an outgoing firewall that may block downloads, make sure to allow downloads from that location. You can also specify an alternative download location by setting `download_url` in the `settings.conf` file. Or download the file in some other way, install it in your `$DBDIR` yourself, and set `download_check` to `0` to disable automatic downloads.
+
+The plugin only checks upto 100 URLs per email. This can be configured in `settings.conf`.
 
 ## Testing your setup
 
-Once you succesfully installed the plugin, you could head to [http://blt.spamhaus.com](http://blt.spamhaus.com) and test if you have correctly installed everything. 
+Once you succesfully installed the plugin, you could head to [https://blt.spamhaus.com](https://blt.spamhaus.com) and test if you have correctly installed everything.
 
 **Please read the docs carefully**, as a "delivered" response with a red flag **doesn't always mean you missed something**; it depends on your setup. You should always check all the headers of any email that the BLT sends and look for spam headers, usually, but not always: "X-Spam-Flag: Yes" or "X-Spam: Yes".
 
