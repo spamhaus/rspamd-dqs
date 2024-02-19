@@ -11,7 +11,8 @@ output=`dig +short TV7QRQPGBKF4X3K4T5QYILRI3SP5CIWVIIOH25YUOGVOJ3SBTYNA._cw.$DQS
 echo "done"
 if [ "$output" = "127.0.3.20" ]; then
     echo "Your DQS key $DQSKEY is enabled for HBL"
-    echo "You can copy sh_rbl_hbl.cf, sh_rbl_group_hbl.cf and rspamd.local.lua if you want HBL enabled"
+    echo "You can copy sh_rbl_hbl.conf, sh_rbl_group_hbl.conf, settings.conf and rspamd.local.lua if you"
+    echo "want HBL enabled detection."
 else
     echo "Your DQS key $DQSKEY is -=NOT=- enabled for HBL"
     echo "Please *do not* copy sh_rbl_hbl.cf, sh_rbl_group_hbl.cf and rspamd.local.lua"
