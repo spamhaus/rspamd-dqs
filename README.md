@@ -115,6 +115,8 @@ However you'll also find two directories, 1.9 and 2.x that contain the rules for
 
 The HBL subset has only been tested on versions 2.4 and higher, so you are strongly encouraged to run the latest Rspamd version before using these rules.
 
+The HBL URL component has only been tested on 3.6 and higher, and we know it *does not work* on version 3.5 and below, so upgrade to the latest version to get access to all the latest features!
+
 ***
 
 ## Installation instructions
