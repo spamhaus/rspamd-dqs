@@ -222,7 +222,7 @@ end
 rspamd_config:register_symbol({
     name = "RBL_SPAMHAUS_HBL_URL",
     score = 7.0,
-    description = "URL found in spamhaus HBL blacklist",
+    description = "URL found in spamhaus HBL blocklist",
     group = "spamhaus",
     type = "callback",
     callback = function(task)
