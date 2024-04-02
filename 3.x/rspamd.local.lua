@@ -1,6 +1,5 @@
 local rspamd_logger = require "rspamd_logger"
--- rspamd_regexp leaks memory, do not use it.
--- local rspamd_re = require "rspamd_regexp"
+local rspamd_re = require "rspamd_regexp"
 local rspamd_hash = require "rspamd_cryptobox_hash"
 local rspamd_util = require "rspamd_util"
 local rspamd_http = require "rspamd_http"
@@ -9,6 +8,7 @@ local sh_urlspec_file = rspamd_paths.DBDIR .. '/URL_normalization.yaml'
 local download_url = 'https://docs.spamhaus.com/download/URL_normalization.yaml'
 local hbl_spamhaus = '.hbl.dq.spamhaus.net.'
 local max_url_queries = 100
+local max_cw_queries = 100
 local dqs_key = nil
 -- If there is no problem, stat the URL file every slow_stat seconds. In case of error, try every fast_stat seconds
 -- only check download file once every 2 days, because it doesn't change very often.
@@ -16,38 +16,99 @@ local slow_stat = 10.0
 local fast_stat = 1.0
 local download_check = 2 * 24 * 3600.0
 
+-- table containing info for CryptoWallet symbols that are enabled
+local cw_symbols = {}
+local cw_all_re
+
+-- return a combined regexp for all cryptowallets
+-- Note there is a bug in rspamd_regexp, regexps that can match an empty pattern can cause hangs and memory loss.
+-- See: https://github.com/rspamd/rspamd/issues/4885
+-- The regexes used to match cryptowallets should never match empty strings, so should be safe to use.
+-- Also note that these regexes are static, and are never freed, so we do not need a call to re:destroy().
+local function combined_re(symbols)
+    local sep = ""
+    local cmb = ""
+    for _, syminfo in pairs(symbols) do
+        cmb = cmb .. sep .. syminfo.re:get_pattern()
+        sep = "|"
+    end
+    return rspamd_re.create(cmb)
+end
+
+local cw_parent = rspamd_config:register_symbol({
+    name = "spamhaus_cw",
+    type = "callback",
+    callback = function(task)
+        if not next(cw_symbols) then
+            return false
+        end
+        if not cw_all_re then
+            cw_all_re = combined_re(cw_symbols)
+        end
+        if dqs_key == nil then
+            rspamd_logger.warn('No DQS key set in settings.conf')
+            return false
+        end
+        local parts = task:get_text_parts()
+        if not parts then
+            return false
+        end
+        local r = task:get_resolver()
+        local maxq = max_cw_queries
+        for _, part in ipairs(parts) do
+            if maxq <= 0 then
+                break
+            end
+            local words = part:filter_words(cw_all_re, "raw", maxq)
+            for _, word in ipairs(words) do
+                for cryptovalue, syminfo in pairs(cw_symbols) do
+                    local found = syminfo.re:search(word)
+                    if found then
+                        local name = "RBL_SPAMHAUS_CW_" .. cryptovalue
+                        local cw = found[1]
+                        if syminfo.lowercase then
+                            cw = cw:lower()
+                        end
+                        local hash = rspamd_hash.create_specific('sha256', cw):base32('rfc')
+                        local lookup = hash .. '._cw.' .. dqs_key .. hbl_spamhaus
+                        local function dns_cb(_, _, results, err)
+                            if not results or err ~= nil then
+                                return false
+                            end
+                            if string.find(tostring(results[1]), '127.0.') then
+                                rspamd_logger.infox('found %s wallet %s (hashed: %s) in Crypto blocklist', cryptovalue, cw, hash)
+                                return task:insert_result(name, 1.0, cw)
+                            end
+                        end
+                        r:resolve_a({ task = task, name = lookup, callback = dns_cb, forced = true})
+                        maxq = maxq - 1
+                        break
+                    end
+                end
+            end
+        end
+        return false
+    end
+})
+
 local function sh_register_cw_symbol(cwinfo)
-    local name = "RBL_SPAMHAUS_CW_" .. cwinfo.cryptovalue
-    config.regexp[name] = {
+    local cw_re = rspamd_re.create(cwinfo.re)
+    if not cw_re then
+        rspamd_logger.warnx('Cannot compile cryptowallet regex %s', cwinfo.re)
+        return
+    end
+    cw_symbols[cwinfo.cryptovalue] = {
+        re = cw_re,
+        lowercase = cwinfo.lowercase,
+    }
+    rspamd_config:register_symbol({
+        name = "RBL_SPAMHAUS_CW_" .. cwinfo.cryptovalue,
         description = cwinfo.description,
         group = cwinfo.group,
         score = cwinfo.score,
-        re = cwinfo.re,
-        re_conditions = {
-            [cwinfo.re] = function (task, txt, s, e)
-                if dqs_key == nil then
-                    return false
-                end
-                local crypto = txt:sub(s + 1, e)
-                if cwinfo.lowercase then
-                    crypto = crypto:lower()
-                end
-                local hash = rspamd_hash.create_specific('sha256', crypto):base32('rfc')
-                local lookup = hash .. '._cw.' .. dqs_key .. hbl_spamhaus
-                local function dns_cb(_, _, results, err)
-                    if not results or err ~= nil then
-                        return false
-                    end
-                    if string.find(tostring(results[1]), '127.0.') then
-                        rspamd_logger.infox('found %s wallet %s (hashed: %s) in Crypto blocklist', cwinfo.cryptovalue, crypto, hash)
-                        return task:insert_result(name, 1.0, crypto)
-                    end
-                end
-                task:get_resolver():resolve_a({ task = task, name = lookup, callback = dns_cb, forced = true})
-                return false
-            end
-        }
-    }
+        type = "virtual",
+        parent = cw_parent,
+    })
 end
 
 sh_register_cw_symbol({
@@ -55,7 +116,7 @@ sh_register_cw_symbol({
     score = 7.0,
     description = "BTC found in Spamhaus cryptowallet list",
     group = "spamhaus",
-    re = [[/\b(?:bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}\b/AL{sa_body}]],
+    re = [[\b(?:bc1|[13])[a-zA-HJ-NP-Z0-9]{25,39}\b]],
     lowercase = false,
 })
 
@@ -64,7 +125,7 @@ sh_register_cw_symbol({
     score = 7.0,
     description = "ETH found in Spamhaus cryptowallet list",
     group = "spamhaus",
-    re = [[/\b0x[a-fA-F0-9]{40}\b/AL{sa_body}]],
+    re = [[\b0x[a-fA-F0-9]{40}\b]],
     lowercase = true,
 })
 
@@ -73,7 +134,7 @@ sh_register_cw_symbol({
     score = 7.0,
     description = "BCH found in Spamhaus cryptowallet list",
     group = "spamhaus",
-    re = [[/\bbitcoincash:(?:q|p)[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{41,111}\b/AL{sa_body}]],
+    re = [[\bbitcoincash:(?:q|p)[qpzry9x8gf2tvdw0s3jn54khce6mua7l]{41,111}\b]],
     lowercase = false,
 })
 
@@ -82,7 +143,7 @@ sh_register_cw_symbol({
     score = 7.0,
     description = "XMR found in Spamhaus cryptowallet list",
     group = "spamhaus",
-    re = [[/\b[4578][1-9A-HJ-NP-Za-km-z]{94}\b/AL{sa_body}]],
+    re = [[\b[4578][1-9A-HJ-NP-Za-km-z]{94}\b]],
     lowercase = false,
 })
 
@@ -91,7 +152,7 @@ sh_register_cw_symbol({
     score = 7.0,
     description = "LTC found in Spamhaus cryptowallet list",
     group = "spamhaus",
-    re = [[/\b[LM3][a-km-zA-HJ-NP-Z1-9]{26,33}\b/AL{sa_body}]],
+    re = [[\b[LM3][a-km-zA-HJ-NP-Z1-9]{26,33}\b]],
     lowercase = false,
 })
 
@@ -100,10 +161,9 @@ sh_register_cw_symbol({
     score = 7.0,
     description = "XRP found in Spamhaus cryptowallet list",
     group = "spamhaus",
-    re = [[/\br[rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz]{27,35}\b/AL{sa_body}]],
+    re = [[\br[rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz]{27,35}\b]],
     lowercase = false,
 })
-
 
 -- return the end of the string for two hex ranges regex, or nil if not found
 local function twohex(re)
@@ -612,6 +672,9 @@ rspamd_config:add_on_load(function(cfg, ev_base, worker)
         dqs_key = shopt.spamhaus.dqs
         if shopt.spamhaus.max_urls ~= nil then
             max_url_queries = shopt.spamhaus.max_urls
+        end
+        if shopt.spamhaus.max_cws ~= nil then
+            max_cw_queries = shopt.spamhaus.max_cws
         end
         if shopt.spamhaus.download_check ~= nil then
             download_check = shopt.spamhaus.download_check
