@@ -1,5 +1,6 @@
 local rspamd_logger = require "rspamd_logger"
-local rspamd_re = require "rspamd_regexp"
+-- rspamd_regexp leaks memory, do not use it.
+-- local rspamd_re = require "rspamd_regexp"
 local rspamd_hash = require "rspamd_cryptobox_hash"
 local rspamd_util = require "rspamd_util"
 local rspamd_http = require "rspamd_http"
@@ -103,6 +104,241 @@ sh_register_cw_symbol({
     lowercase = false,
 })
 
+
+-- return the end of the string for two hex ranges regex, or nil if not found
+local function twohex(re)
+    local hexrange = {
+        "0-9",
+        [[\d]],
+        "a-f",
+        "A-F",
+    }
+    local offset = 1
+    for dig = 1, 2 do
+        -- special case: second digit can also be "{2}"
+        if dig == 2 and re:sub(offset, offset + 2) == "{2}" then
+            return offset + 2
+        -- must start with [ range open
+        elseif re:sub(offset, offset) ~= "[" then
+            return nil
+        end
+        offset = offset + 1
+        while re:len() > offset do
+            local found = false
+            for _, str in ipairs(hexrange) do
+                if re:sub(offset, offset + str:len() - 1) == str then
+                    found = true
+                    offset = offset + str:len()
+                    break
+                end
+            end
+            if not found then
+                break
+            end
+        end
+        -- we must be at the range closing ] bracket
+        if re:sub(offset, offset) ~= "]" then
+            return nil
+        end
+        offset = offset + 1
+    end
+    -- return the end of the string, not the next character.
+    return offset - 1
+end
+
+-- reduce [range]|%[hex][hex] to just the range including the %. If that's not present, return original re
+local function no_orpercent(re)
+    -- there are a number of ways to write this...
+    local orpercent = {
+        "]|%",
+        "]|(%",
+        "]|(?:%",
+    }
+    for _, orp in ipairs(orpercent) do
+        local s, e = re:find(orp, 1, true)
+        if s ~= nil then
+            local th = twohex(re:sub(e + 1))
+            if th == nil then
+                rspamd_logger.warnx("Unable to simplify regex %s because no twohex match at %s", re, re:sub(e+1))
+                return re
+            end
+            e = e + th
+            -- include closing bracket if there was an opening one
+            if orp:find("(", 1, true) then
+                if re:sub(e + 1, e + 1) ~= ")" then
+                    rspamd_logger.warnd("Unable to simplify regex %s because no closing bracket at %s", re, re:sub(e+1))
+                    return re
+                else
+                    e = e + 1
+                end
+            end
+            -- pre will contain everything up to the trailing ] character.
+            local pre = re:sub(1, s - 1)
+            -- post is evreything after the match.
+            local post = re:sub(e + 1)
+            local add = "%]"
+            if pre:sub(-1) == "-" then
+                pre = pre:sub(1, -2)
+                add = "%-]"
+            end
+            re = pre .. add .. post
+            -- now simplify ([...]) into just [...]
+            local sb, eb = re:find("%(%[%^?%]?[^]]*%]%)")
+            local sclass
+            if sb ~= nil then
+                sclass = sb + 1
+            else
+                sb, eb = re:find("%(%?%:%[%^?%]?[^]]*%]%)")
+                if sb ~= nil then
+                    sclass = sb + 3
+                end
+            end
+            if sb ~= nil then
+                re = re:sub(1, sb - 1) .. re:sub(sclass, eb - 1) .. re:sub(eb + 1)
+            end
+            return re
+        end
+    end
+    return re
+end
+
+local function re_range(re, offset)
+    local _, e = re:find("^%^?%]?[^]]*%]", offset)
+    if e == nil then
+        rspamd_logger.warnx("Cannot parse regex range %s", re:sub(offset))
+        return nil
+    end
+    local ret = "["
+    local i = offset
+    while i <= e do
+        local c = re:sub(i, i)
+        i = i + 1
+        if c == "\\" then
+            local c2 = re:sub(i, i)
+            i = i + 1
+            -- assume that all escaped characters translate to lua ranges. It's not exact but it's close enough.
+            ret = ret .. "%" .. c2
+        elseif c == "%" then
+            -- explicitly escape a percent
+            ret = ret .. "%%"
+        else
+            ret = ret .. c
+        end
+    end
+    return ret, e
+end
+
+-- retrieve one element from a PCRE regular expression, and translate some constructs to lua patterns: ranges and escapes.
+local function get_re_elem(re, offset)
+    local ch = re:sub(offset, offset)
+    if ch == "[" then
+        return re_range(re, offset + 1)
+    elseif ch == "{" then
+        local _, er = re:find("^%{[%d,]+%}", offset)
+        return re:sub(offset, er), er
+    elseif re:len() >= offset + 2 and re:sub(offset, offset + 2) == "(?:" then
+        return "(", offset + 2
+    elseif ch:match("^[|()*+?.^$]") then
+        -- regular match meta char
+        return ch, offset
+    elseif ch == "\\" then
+        offset = offset + 1
+        return "%" .. re:sub(offset, offset), offset
+    elseif ch:match([=[^[%w%s!@#~`_=:;<>,/]]=]) then
+        -- regular character or innocent meta character
+        return ch, offset
+    else
+        -- any other character: escape it
+        return "%" .. ch, offset
+    end
+end
+
+-- convert PCRE-compatible regexp into lua code, loosely. Takes a few shortcuts.
+local function sh_compile_re(re)
+    -- options contain the possible lua match strings
+    local options = {}
+    -- first loose interpretation: in case a regexp contains a range followed by |%[hexchar][hexchar], simply add the % to the range
+    re = no_orpercent(re)
+    local reoff = 1
+    -- explicitly anchor all regexes
+    local thisopt = { match= "^", minsize= 0, maxsize= 0 }
+    local anchor_end = false
+    while reoff <= re:len() do
+        local nextelem, elemend = get_re_elem(re, reoff)
+        if nextelem == nil then
+            return nil
+        elseif nextelem == '|' then
+            table.insert(options, thisopt)
+            thisopt = { match = "^", minsize= 0, maxsize= 0 }
+            anchor_end = false
+        elseif anchor_end then
+            rspamd_logger.warnx("Cannot match $ end-of-line marker halfway through regex in %s", re)
+            return nil
+        elseif nextelem == "^" then
+            if thisopt.match ~= "^" then
+                rspamd_logger.warnx("Cannot match ^ beginning-of-line marker halfway through regex in %s", re)
+                return nil
+            end
+        elseif nextelem == "(" then
+            rspamd_logger.warnx("Cannot handle grouping () in regex %s", re)
+            return nil
+        elseif nextelem:sub(1, 1) == "{" then
+            -- handle repeat
+            local minmatch, sep, repend = nextelem:match("%{(%d+)([,}])()")
+            local rep = "+"
+            if minmatch == nil then
+                rspamd_logger.warnx("Cannot parse repeat pattern %s", nextelem)
+                return nil
+            elseif minmatch == 0 then
+                -- minimum is zero
+                rep = "*"
+            end
+            local maxmatch = minmatch
+            if sep == "," then
+                maxmatch = nextelem:sub(repend):match("(%d+)%}")
+                if maxmatch == nil then
+                    rspamd_logger.warnx("Cannot parse repeat pattern %s", nextelem)
+                    return nil
+                end
+            end
+            thisopt.match = thisopt.match .. rep
+            thisopt.minsize = thisopt.minsize - 1 + minmatch
+            thisopt.maxsize = thisopt.maxsize - 1 + maxmatch
+        elseif nextelem == "*" then
+            thisopt.match = thisopt.match .. nextelem
+            thisopt.minsize = thisopt.minsize - 1
+            thisopt.maxsize = 65536
+        elseif nextelem == "+" then
+            thisopt.match = thisopt.match .. nextelem
+            thisopt.maxsize = 65536
+        elseif nextelem == "$" then
+            thisopt.match = thisopt.match .. '$'
+            anchor_end = true
+        else
+            -- anything else matches just a single character
+            thisopt.match = thisopt.match .. nextelem
+            thisopt.minsize = thisopt.minsize + 1
+            thisopt.maxsize = thisopt.maxsize + 1
+        end
+        reoff = elemend + 1
+    end
+    table.insert(options, thisopt)
+    return function(s)
+        for _, opt in ipairs(options) do
+            if s:len() >= opt.minsize then
+                local found = s:match(opt.match)
+                if found ~= nil then
+                    if found:len() > opt.maxsize and opt.maxsize < 65536 then
+                        found = found:sub(1, opt.maxsize)
+                    end
+                    return found
+                end
+            end
+        end
+        return nil
+    end
+end
+
 local function process_alg(urltable, alg)
     local name = alg.name
     if name == nil then
@@ -114,7 +350,15 @@ local function process_alg(urltable, alg)
         rspamd_logger.warnx('Invalid regex in URL normalization algorithm %s: no regex', name)
         return
     end
-    urltable.algre[name] = rspamd_re.create(regstr)
+    -- XXX rspamd_regexp leaks memory, do not use it.
+    -- urltable.algre[name] = rspamd_re.create(regstr)
+    -- instead, compile regex loosely to lua functions that use standard lua string functions.
+    local compiled_re = sh_compile_re(regstr)
+    if compiled_re == nil then
+        rspamd_logger.warnx('Cannot compile regex %s (for algorithm %s)', regstr, name)
+        return
+    end
+    urltable.algref[name] = compiled_re
     if alg.lowerhash and alg.lowerhash == "true" then
         urltable.alglower[name] = true
     end
@@ -130,11 +374,12 @@ end
 -- returns a table with URL specs. The table contains a few entries:
 --   dom2alg: a table mapping a domain to an algorithm
 --   default: the name of the default algorithm
---   algre: a table mapping an algorithm to a compiled regular expression
+--   algre: a table mapping an algorithm to a compiled regular expression (XXX not used while regexps leak memory)
+--   algref: a table mapping an algorithm to a lua function that loosely implements the regexp extraction.
 --   alglower: a table mapping an algorithm to a boolean specifying if URL should be lowercased
 local function load_url_spec(fname)
     rspamd_logger.infox('Loading URL normalization scheme from %s', fname)
-    local urltable = { dom2alg = {}, algre = {}, alglower = {} }
+    local urltable = { dom2alg = {}, algref = {}, alglower = {} }
     local alg = {}
     local in_domains = false
     local fh, err = io.open(fname)
@@ -186,6 +431,7 @@ local function url_to_hash(url, urlspec)
     local lhost = url:get_host():lower()
     local alg = urlspec.dom2alg[lhost] or urlspec.default
     if alg == nil then
+        rspamd_logger.infox('no algorithm known for host %s', lhost)
         return
     end
     local hdata = lhost
@@ -206,12 +452,23 @@ local function url_to_hash(url, urlspec)
     if ufragment ~= nil then
         upath = upath .. "#" .. ufragment
     end
-    local hpart = urlspec.algre[alg]:search(upath)
-    if hpart == nil then
-        rspamd_logger.infox('URL path does not match normalization regex for algorithm %s. path=%s', alg, upath)
+    -- decode %-escaped characters
+    upath = upath:gsub("%%(%x%x)", function (h)
+        return string.char("0x" .. h)
+    end)
+    -- XXX working around memory issues in rspamd_regexp
+    -- local hpart = urlspec.algre[alg]:search(upath)
+    local cre = urlspec.algref[alg]
+    if cre == nil then
+        rspamd_logger.infox('regex not implemented for algorithm %s for url %s', alg, url:get_text())
         return
     end
-    hdata = hdata .. hpart[1]
+    local hpart = cre(upath)
+    if hpart == nil then
+        rspamd_logger.warnx('URL path does not match normalization regex for algorithm %s. path=%s', alg, upath)
+        return
+    end
+    hdata = hdata .. hpart
     if urlspec.alglower[alg] then
         hdata = hdata:lower()
     end
@@ -224,6 +481,7 @@ rspamd_config:register_symbol({
     score = 7.0,
     description = "URL found in spamhaus HBL blocklist",
     group = "spamhaus",
+    one_shot = true,
     type = "callback",
     callback = function(task)
         if dqs_key == nil then
@@ -284,9 +542,10 @@ local function reload_urlspec(_, _)
         return slow_stat
     end
     -- Cleanup the regexes from the old urlspec
-    for _, re in ipairs(old_urlspec.algre) do
-        re:destroy()
-    end
+    -- XXX no regexps in use, skip
+    -- for _, re in pairs(old_urlspec.algre) do
+    --     re:destroy()
+    -- end
     return slow_stat
 end
 
