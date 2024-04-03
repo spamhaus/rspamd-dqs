@@ -512,10 +512,6 @@ local function url_to_hash(url, urlspec)
     if ufragment ~= nil then
         upath = upath .. "#" .. ufragment
     end
-    -- decode %-escaped characters
-    upath = upath:gsub("%%(%x%x)", function (h)
-        return string.char("0x" .. h)
-    end)
     -- XXX working around memory issues in rspamd_regexp
     -- local hpart = urlspec.algre[alg]:search(upath)
     local cre = urlspec.algref[alg]
