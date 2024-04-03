@@ -610,7 +610,7 @@ local function reload_urlspec(_, _)
 end
 
 local function download_urlspec(cfg, ev_base)
-    local req_hdrs = { ['User-Agent']= 'rspamd-dqs 20240208' }
+    local req_hdrs = { ['User-Agent']= 'rspamd-dqs 20240403' }
     local _, stat = rspamd_util.stat(sh_urlspec_file)
     if stat ~= nil then
         req_hdrs['If-Modified-Since'] = rspamd_util.time_to_string(stat.mtime)
