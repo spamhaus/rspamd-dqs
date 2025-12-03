@@ -80,7 +80,7 @@ If you have a free DQS subscription and would like to trial HBL, please send an 
 
 #### How do I register a DQS key?
 
-Just go [here](https://www.spamhaus.com/dqs/) and complete the registration procedure. After you register an account, go to [this](https://portal.spamhaus.com/manuals/dqs/) page and you'll find the DQS key under section "1.0 Datafeed Query Service".
+Just go [here](https://www.spamhaus.com/dqs/) and complete the registration procedure. After you register an account, go to [this](https://portal.spamhaus.com/dqs/) page and you'll find the DQS key under section "1.0 Datafeed Query Service".
 
 ***
 
