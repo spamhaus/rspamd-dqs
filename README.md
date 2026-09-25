@@ -1,6 +1,6 @@
-# Using Blocklists via DNS Query with Rspamd
+# Using Blocklists via DNS Query (DQS) with RSpamd
 
-This repository contains configuration files for Rspamd, (https://rspamd.com/) for use with the Spamhaus Technology Blocklists via DNS Query product.
+This repository contains configuration files for Rspamd, (https://rspamd.com/) for use with the Spamhaus Technology Blocklists via DNS Query product, formerly know as the Data Query Service.
 
 ***
 
